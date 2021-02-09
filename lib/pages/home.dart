@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_poda/pages/list_fincas.dart';
 
+import 'list_parcelas.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key key}) : super(key: key);
 
@@ -36,7 +38,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ListFincasPage()),
+                  MaterialPageRoute(builder: (context) => ListParcelasPage()),
                 );
               },
             ),

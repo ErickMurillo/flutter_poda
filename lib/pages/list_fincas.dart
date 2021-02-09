@@ -103,7 +103,7 @@ class _ListFincasPageState extends State<ListFincasPage> {
                 margin: EdgeInsets.all(10.0),
                 child: RaisedButton(
                   onPressed: () => _onSubmit(),
-                  child: Text('Agregar'),
+                  child: Text('Guardar'),
                 ),
               )
             ],
@@ -146,6 +146,13 @@ class _ListFincasPageState extends State<ListFincasPage> {
                     ListTile(
                       title: Text(_fincas[index].nombre.toUpperCase()),
                       subtitle: Text(_fincas[index].area.toString()),
+                      trailing: IconButton(
+                          icon: Icon(Icons.delete_sweep),
+                          onPressed: () async {
+                            await _dbHelper.deleteFinca(_fincas[index].id);
+                            _resetForm();
+                            _refreshFincasList();
+                          }),
                       onTap: () {
                         setState(() {
                           _finca = _fincas[index];

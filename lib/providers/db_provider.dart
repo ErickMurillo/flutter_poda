@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter_poda/models/finca.dart';
+import 'package:flutter_poda/models/parcelas.dart';
+import 'package:flutter_poda/models/variedad.dart';
 import 'package:path/path.dart';
 
 import 'package:path_provider/path_provider.dart';
@@ -34,35 +36,23 @@ class DatabaseHelper {
           'unidad TEXT,'
           'productor TEXT'
           ')');
+      await db.execute('CREATE TABLE if not exists Variedad('
+          'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'nombre TEXT'
+          ')');
+      await db.execute('CREATE TABLE if not exists Parcela('
+          'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'nombre TEXT,'
+          'area REAL,'
+          'idVariedad INTEGER,'
+          'idFinca INTEGER,'
+          'FOREIGN KEY(idVariedad) REFERENCES Variedad(id),'
+          'FOREIGN KEY(idFinca) REFERENCES Finca(id)'
+          ')');
     });
   }
 
-//   // Insert on database
-//   createFinca(Finca newFinca) async {
-//     // await deleteAllFinca();
-//     final db = await database;
-//     final res = await db.insert('Finca', newFinca.toJson());
-
-//     return res;
-//   }
-
-//   // Delete all
-//   Future<int> deleteAllFinca() async {
-//     final db = await database;
-//     final res = await db.rawDelete('DELETE FROM Finca');
-
-//     return res;
-//   }
-
-//   //select all
-//   Future<List<Finca>> getAllFincas() async {
-//     final db = await database;
-//     final res = await db.rawQuery("SELECT * FROM Finca");
-//     List<Finca> list =
-//         res.isNotEmpty ? res.map((c) => Finca.fromJson(c)).toList() : [];
-//     return list;
-//   }
-
+// fincas CRUD
   Future<int> insertFinca(Finca finca) async {
     Database db = await database;
     return await db.insert('Finca', finca.toMap());
@@ -74,11 +64,72 @@ class DatabaseHelper {
         .update('Finca', finca.toMap(), where: 'id=?', whereArgs: [finca.id]);
   }
 
+  Future<int> deleteFinca(int id) async {
+    Database db = await database;
+    return await db.delete('Finca', where: 'id=?', whereArgs: [id]);
+  }
+
+  Future getFinca(int id) async {
+    Database db = await database;
+    final res = await db.rawQuery("SELECT area FROM Finca WHERE id=?", [id]);
+    return res;
+  }
+
   Future<List<Finca>> fetchFincas() async {
     Database db = await database;
     List<Map> fincas = await db.query('Finca');
     return fincas.length == 0
         ? []
         : fincas.map((e) => Finca.fromMap(e)).toList();
+  }
+
+  //variedades CRUD
+  Future<int> insertVariedad(Variedad variedad) async {
+    Database db = await database;
+    return await db.insert('Variedad', variedad.toMap());
+  }
+
+  Future<int> updateVariedad(Variedad variedad) async {
+    Database db = await database;
+    return await db.update('Variedad', variedad.toMap(),
+        where: 'id=?', whereArgs: [variedad.id]);
+  }
+
+  Future<int> deleteVariedad(int id) async {
+    Database db = await database;
+    return await db.delete('Variedad', where: 'id=?', whereArgs: [id]);
+  }
+
+  Future<List<Variedad>> fetchVariedad() async {
+    Database db = await database;
+    List<Map> variedades = await db.query('Variedad');
+    return variedades.length == 0
+        ? []
+        : variedades.map((e) => Variedad.fromMap(e)).toList();
+  }
+
+  //parcelas CRUD
+  Future<int> insertParcela(Parcela parcela) async {
+    Database db = await database;
+    return await db.insert('Parcela', parcela.toMap());
+  }
+
+  Future<int> updateParcela(Parcela parcela) async {
+    Database db = await database;
+    return await db.update('Parcela', parcela.toMap(),
+        where: 'id=?', whereArgs: [parcela.id]);
+  }
+
+  Future<int> deleteParcela(int id) async {
+    Database db = await database;
+    return await db.delete('Parcela', where: 'id=?', whereArgs: [id]);
+  }
+
+  Future<List<Parcela>> fetchParcela() async {
+    Database db = await database;
+    List<Map> parcelas = await db.query('Parcela');
+    return parcelas.length == 0
+        ? []
+        : parcelas.map((e) => Parcela.fromMap(e)).toList();
   }
 }
