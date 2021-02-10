@@ -160,7 +160,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
                     validateParcela = asd;
                   });
                 },
-                validator: (val) => (_areaFinca.first.area <
+                validator: (val) => (_areaFinca.first.area <=
                         (validateParcela + double.parse(val))
                     ? 'Suma areas parcelas mayor a total finca'
                     : null),
