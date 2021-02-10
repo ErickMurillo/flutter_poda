@@ -137,7 +137,7 @@ class _ListFincasPageState extends State<ListFincasPage> {
 
   _list() => Expanded(
         child: Card(
-            margin: EdgeInsets.fromLTRB(20, 30, 20, 0),
+            margin: EdgeInsets.fromLTRB(0, 20, 0, 20),
             child: ListView.builder(
               padding: EdgeInsets.all(8),
               itemBuilder: (context, index) {

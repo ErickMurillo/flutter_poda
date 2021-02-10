@@ -11,7 +11,7 @@ class Parcela {
     id = map['id'];
     idFinca = map['idFinca'];
     nombre = map['nombre'];
-    area = map['area'].toDouble();
+    area = map['area'];
     idVariedad = map['idVariedad'];
     plantas = map['plantas'];
   }

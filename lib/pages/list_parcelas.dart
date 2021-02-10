@@ -24,7 +24,9 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
   List<Finca> _fincas = [];
   List<Parcela> _parcelas = [];
   DatabaseHelper _dbHelper;
-//   var totalArea;
+  var totalArea;
+  List<Finca> _areaFinca = [];
+  double validateParcela;
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
     });
     _refreshVariedadList();
     _refreshFincaList();
+    _refreshParcelaList();
   }
 
   @override
@@ -47,16 +50,6 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 _form(),
-                ElevatedButton(
-                  child: Text('Agregar variedad'),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ListVariedadesPage()),
-                    ).then((val) => _refreshVariedadList());
-                  },
-                ),
                 _list(),
               ]),
         ));
@@ -107,6 +100,18 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
     });
   }
 
+  Future<double> _validateTotalAreaParcela(int id) async {
+    List x = await _dbHelper.fetchParcelaFromFinca(id);
+    double result;
+    if (x.first['total'] != null) {
+      result = x.first['total'];
+    } else {
+      result = 0;
+    }
+
+    return result;
+  }
+
   _form() => Container(
         color: Colors.white,
         padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
@@ -115,23 +120,28 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
           child: Column(
             children: <Widget>[
               DropdownButtonFormField<int>(
+                validator: (value) => value == null ? 'required' : null,
                 value: selectedFinca,
                 hint: Text('Finca'),
                 items: _fincas
                     .map((label) => DropdownMenuItem(
-                          child: Text(label.nombre + ' - ' + label.unidad),
+                          child: Text(label.nombre +
+                              ' (' +
+                              label.area.toString() +
+                              ' ' +
+                              label.unidad +
+                              ')'),
                           value: label.id,
                         ))
                     .toList(),
-                onChanged: (value) {
+                onChanged: (value) async {
+                  List<Finca> area = await _dbHelper.getFinca(value);
+
                   setState(() {
                     selectedFinca = value;
-                    // totalArea = _dbHelper.getFinca(value);
+                    _areaFinca = area;
                   });
                 },
-                // validator: (value) => (value <= totalArea
-                //     ? 'valor es mayor a area total finca'
-                //     : null),
                 onSaved: (value) => setState(() => _parcela.idFinca = value),
               ),
               TextFormField(
@@ -144,11 +154,21 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
                 controller: _ctlArea,
                 decoration: InputDecoration(labelText: 'Area'),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
-                validator: (val) => (val.length == 0 ? 'required' : null),
+                onChanged: (val) async {
+                  double asd = await _validateTotalAreaParcela(selectedFinca);
+                  setState(() {
+                    validateParcela = asd;
+                  });
+                },
+                validator: (val) => (_areaFinca.first.area <
+                        (validateParcela + double.parse(val))
+                    ? 'Suma areas parcelas mayor a total finca'
+                    : null),
                 onSaved: (val) =>
                     setState(() => _parcela.area = double.parse(val)),
               ),
               DropdownButtonFormField<int>(
+                validator: (value) => value == null ? 'required' : null,
                 value: selectedVariedad,
                 hint: Text('Variedad'),
                 items: _variedades
@@ -166,15 +186,27 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
                 controller: _ctlPlantas,
                 decoration: InputDecoration(labelText: 'Plantas'),
                 keyboardType: TextInputType.numberWithOptions(),
+                validator: (val) => (val.length == 0 ? 'required' : null),
                 onSaved: (val) =>
                     setState(() => _parcela.plantas = int.parse(val)),
               ),
-              Container(
-                margin: EdgeInsets.all(10.0),
-                child: RaisedButton(
-                  onPressed: () => _onSubmit(),
-                  child: Text('Guardar'),
-                ),
+              Row(
+                children: <Widget>[
+                  ElevatedButton(
+                    onPressed: () => _onSubmit(),
+                    child: Text('Guardar'),
+                  ),
+                  ElevatedButton(
+                    child: Text('Agregar variedad'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ListVariedadesPage()),
+                      ).then((val) => _refreshVariedadList());
+                    },
+                  ),
+                ],
               )
             ],
           ),
@@ -183,7 +215,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
 
   _list() => Expanded(
         child: Card(
-            margin: EdgeInsets.fromLTRB(20, 30, 20, 0),
+            margin: EdgeInsets.fromLTRB(0, 20, 0, 20),
             child: ListView.builder(
               padding: EdgeInsets.all(8),
               itemBuilder: (context, index) {

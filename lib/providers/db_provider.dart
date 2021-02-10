@@ -44,6 +44,7 @@ class DatabaseHelper {
           'id INTEGER PRIMARY KEY AUTOINCREMENT,'
           'nombre TEXT,'
           'area REAL,'
+          'plantas INTEGER,'
           'idVariedad INTEGER,'
           'idFinca INTEGER,'
           'FOREIGN KEY(idVariedad) REFERENCES Variedad(id),'
@@ -69,10 +70,13 @@ class DatabaseHelper {
     return await db.delete('Finca', where: 'id=?', whereArgs: [id]);
   }
 
-  Future getFinca(int id) async {
+  Future<List<Finca>> getFinca(int id) async {
     Database db = await database;
-    final res = await db.rawQuery("SELECT area FROM Finca WHERE id=?", [id]);
-    return res;
+    List<Map> fincas = await db.query('Finca',
+        columns: ['area'], where: 'id=?', whereArgs: [id]);
+    return fincas.length == 0
+        ? []
+        : fincas.map((e) => Finca.fromMap(e)).toList();
   }
 
   Future<List<Finca>> fetchFincas() async {
@@ -131,5 +135,12 @@ class DatabaseHelper {
     return parcelas.length == 0
         ? []
         : parcelas.map((e) => Parcela.fromMap(e)).toList();
+  }
+
+  Future<List> fetchParcelaFromFinca(int id) async {
+    Database db = await database;
+    var result = await db.rawQuery(
+        "SELECT SUM(area) as total FROM Parcela where idFinca=?", [id]);
+    return result;
   }
 }
