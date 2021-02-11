@@ -222,8 +222,11 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
                 return Column(
                   children: <Widget>[
                     ListTile(
-                      title: Text(_parcelas[index].nombre.toUpperCase()),
+                      title: Text(_parcelas[index].nombre.toUpperCase() +
+                          ' FINCA: ' +
+                          _parcelas[index].idFinca.toString()),
                       subtitle: Text(_parcelas[index].area.toString()),
+                      isThreeLine: true,
                       trailing: IconButton(
                           icon: Icon(Icons.delete_sweep),
                           onPressed: () async {

@@ -11,7 +11,6 @@ class ListFincasPage extends StatefulWidget {
 
 class _ListFincasPageState extends State<ListFincasPage> {
   List<Finca> _fincas = [];
-
   DatabaseHelper _dbHelper;
   Finca _finca = Finca();
   String selected;
@@ -145,7 +144,9 @@ class _ListFincasPageState extends State<ListFincasPage> {
                   children: <Widget>[
                     ListTile(
                       title: Text(_fincas[index].nombre.toUpperCase()),
-                      subtitle: Text(_fincas[index].area.toString()),
+                      subtitle: Text(_fincas[index].area.toString() +
+                          ' ' +
+                          _fincas[index].unidad),
                       trailing: IconButton(
                           icon: Icon(Icons.delete_sweep),
                           onPressed: () async {

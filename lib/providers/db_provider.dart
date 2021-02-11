@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_poda/models/finca.dart';
 import 'package:flutter_poda/models/parcelas.dart';
+import 'package:flutter_poda/models/test_parcela.dart';
 import 'package:flutter_poda/models/variedad.dart';
 import 'package:path/path.dart';
 
@@ -50,10 +51,18 @@ class DatabaseHelper {
           'FOREIGN KEY(idVariedad) REFERENCES Variedad(id),'
           'FOREIGN KEY(idFinca) REFERENCES Finca(id)'
           ')');
+      await db.execute('CREATE TABLE if not exists TestParcela('
+          'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'idFinca INTEGER,'
+          'idParcela INTEGER,'
+          'fecha TEXT,'
+          'FOREIGN KEY(idFinca) REFERENCES Finca(id),'
+          'FOREIGN KEY(idParcela) REFERENCES Parcela(id)'
+          ')');
     });
   }
 
-// fincas CRUD
+// fincas CRUD ---------------------------------------------------
   Future<int> insertFinca(Finca finca) async {
     Database db = await database;
     return await db.insert('Finca', finca.toMap());
@@ -87,7 +96,7 @@ class DatabaseHelper {
         : fincas.map((e) => Finca.fromMap(e)).toList();
   }
 
-  //variedades CRUD
+  //variedades CRUD ---------------------------------------------------
   Future<int> insertVariedad(Variedad variedad) async {
     Database db = await database;
     return await db.insert('Variedad', variedad.toMap());
@@ -112,7 +121,7 @@ class DatabaseHelper {
         : variedades.map((e) => Variedad.fromMap(e)).toList();
   }
 
-  //parcelas CRUD
+  //parcelas CRUD ---------------------------------------------------
   Future<int> insertParcela(Parcela parcela) async {
     Database db = await database;
     return await db.insert('Parcela', parcela.toMap());
@@ -142,5 +151,30 @@ class DatabaseHelper {
     var result = await db.rawQuery(
         "SELECT SUM(area) as total FROM Parcela where idFinca=?", [id]);
     return result;
+  }
+
+  // test parcela crud ---------------------------------------------------
+  Future<int> insertTestParcela(TestParcela testparcela) async {
+    Database db = await database;
+    return await db.insert('TestParcela', testparcela.toMap());
+  }
+
+  Future<int> updateTestParcela(TestParcela testparcela) async {
+    Database db = await database;
+    return await db.update('TestParcela', testparcela.toMap(),
+        where: 'id=?', whereArgs: [testparcela.id]);
+  }
+
+  Future<int> deleteTestParcela(int id) async {
+    Database db = await database;
+    return await db.delete('TestParcela', where: 'id=?', whereArgs: [id]);
+  }
+
+  Future<List<TestParcela>> fetchTestParcela() async {
+    Database db = await database;
+    List<Map> testParcelas = await db.query('TestParcela');
+    return testParcelas.length == 0
+        ? []
+        : testParcelas.map((e) => TestParcela.fromMap(e)).toList();
   }
 }

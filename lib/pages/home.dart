@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_poda/pages/decisiones.dart';
 import 'package:flutter_poda/pages/list_fincas.dart';
 
 import 'list_parcelas.dart';
@@ -40,6 +41,16 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ListParcelasPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.add),
+              title: Text('Tomar decisiones y datos'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DecisionesPage()),
                 );
               },
             ),
