@@ -138,12 +138,37 @@ class DatabaseHelper {
     return await db.delete('Parcela', where: 'id=?', whereArgs: [id]);
   }
 
-  Future<List<Parcela>> fetchParcela() async {
+//   Future<List<Parcela>> fetchParcela() async {
+//     Database db = await database;
+//     List<Map> parcelas = await db.query('Parcela');
+//     return parcelas.length == 0
+//         ? []
+//         : parcelas.map((e) => Parcela.fromMap(e)).toList();
+//   }
+
+  Future<List> fetchParcela() async {
     Database db = await database;
-    List<Map> parcelas = await db.query('Parcela');
-    return parcelas.length == 0
+    var result = await db.rawQuery(
+        "SELECT Parcela.id, Parcela.nombre, Finca.nombre as finca, Parcela.area, Parcela.plantas, Parcela.idVariedad, Parcela.idFinca FROM Parcela INNER JOIN Finca on Finca.id = Parcela.idFinca");
+    return result;
+  }
+
+  Future<List<Parcela>> getParcelaId(int id) async {
+    Database db = await database;
+    List<Map> parcela =
+        await db.query('Parcela', where: 'id=?', whereArgs: [id]);
+    return parcela.length == 0
         ? []
-        : parcelas.map((e) => Parcela.fromMap(e)).toList();
+        : parcela.map((e) => Parcela.fromMap(e)).toList();
+  }
+
+  Future<List<Parcela>> getParcelaFromFincaId(int id) async {
+    Database db = await database;
+    List<Map> parcela =
+        await db.query('Parcela', where: 'idFinca=?', whereArgs: [id]);
+    return parcela.length == 0
+        ? []
+        : parcela.map((e) => Parcela.fromMap(e)).toList();
   }
 
   Future<List> fetchParcelaFromFinca(int id) async {
@@ -170,11 +195,19 @@ class DatabaseHelper {
     return await db.delete('TestParcela', where: 'id=?', whereArgs: [id]);
   }
 
-  Future<List<TestParcela>> fetchTestParcela() async {
+  Future<List> fetchTestParcela() async {
     Database db = await database;
-    List<Map> testParcelas = await db.query('TestParcela');
-    return testParcelas.length == 0
+    var result = await db.rawQuery(
+        "SELECT TestParcela.id, Parcela.nombre as parcela, Finca.nombre as finca, TestParcela.fecha FROM TestParcela INNER JOIN Finca on Finca.id = TestParcela.idFinca INNER JOIN Parcela on Parcela.id = TestParcela.idParcela");
+    return result;
+  }
+
+  Future<List<TestParcela>> getTest(int id) async {
+    Database db = await database;
+    List<Map> test =
+        await db.query('TestParcela', where: 'id=?', whereArgs: [id]);
+    return test.length == 0
         ? []
-        : testParcelas.map((e) => TestParcela.fromMap(e)).toList();
+        : test.map((e) => TestParcela.fromMap(e)).toList();
   }
 }

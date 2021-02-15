@@ -4,9 +4,13 @@ import 'package:flutter_poda/models/parcelas.dart';
 import 'package:flutter_poda/models/test_parcela.dart';
 import 'package:flutter_poda/providers/db_provider.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
+import 'package:intl/intl.dart';
+
+import 'decisiones.dart';
 
 class AddDecisionesPage extends StatefulWidget {
-  const AddDecisionesPage({Key key}) : super(key: key);
+  final int testid;
+  AddDecisionesPage({Key key, this.testid}) : super(key: key);
 
   @override
   _AddDecisionesPageState createState() => _AddDecisionesPageState();
@@ -14,38 +18,70 @@ class AddDecisionesPage extends StatefulWidget {
 
 class _AddDecisionesPageState extends State<AddDecisionesPage> {
   final _formKey = GlobalKey<FormState>();
-  final _ctlFecha = TextEditingController();
   int selectedParcela;
   int selectedFinca;
   TestParcela _test = TestParcela();
   List<Finca> _fincas = [];
   List<Parcela> _parcelas = [];
   DatabaseHelper _dbHelper;
+  final _dateController = TextEditingController();
+  DateTime selectedDate = DateTime.now();
+  final DateFormat formatter = DateFormat('dd-MM-yyyy');
 
   @override
   void initState() {
     super.initState();
     setState(() {
       _dbHelper = DatabaseHelper.instance;
+      _refreshFincaList();
+      if (widget.testid != null) {
+        _getTest(widget.testid);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Tomar datos y decisiones"),
-        ),
-        body: Swiper(
-          itemCount: 1,
-          itemBuilder: (BuildContext context, int index) {
-            return Center(
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[_form()]),
-            );
-          },
-        ));
+      appBar: AppBar(
+        title: Text("Tomar datos y decisiones"),
+      ),
+      body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[_form()]),
+    );
+  }
+
+  _refreshFincaList() async {
+    List<Finca> x = await _dbHelper.fetchFincas();
+    setState(() {
+      _fincas = x;
+    });
+  }
+
+  _getTest(int id) async {
+    List<TestParcela> x = await _dbHelper.getTest(id);
+    List<Parcela> p = await _dbHelper.getParcelaFromFincaId(x.first.idFinca);
+    setState(() {
+      _parcelas = p;
+      _test = x.first;
+      selectedFinca = x.first.idFinca;
+      selectedParcela = x.first.idParcela;
+    });
+  }
+
+  _selectDate(BuildContext context) async {
+    final DateTime picked = await showDatePicker(
+        context: context,
+        initialDate: selectedDate,
+        firstDate: DateTime(2019, 8),
+        lastDate: DateTime(2100));
+    if (picked != null && picked != selectedDate)
+      setState(() {
+        selectedDate = picked;
+        var date = formatter.format(picked);
+        _dateController.text = date;
+      });
   }
 
   _form() => Container(
@@ -61,17 +97,15 @@ class _AddDecisionesPageState extends State<AddDecisionesPage> {
                 hint: Text('Finca'),
                 items: _fincas
                     .map((label) => DropdownMenuItem(
-                          child: Text(label.nombre +
-                              ' (' +
-                              label.area.toString() +
-                              ' ' +
-                              label.unidad +
-                              ')'),
+                          child: Text(label.nombre),
                           value: label.id,
                         ))
                     .toList(),
                 onChanged: (value) async {
+                  List<Parcela> result =
+                      await _dbHelper.getParcelaFromFincaId(value);
                   setState(() {
+                    _parcelas = result;
                     selectedFinca = value;
                   });
                 },
@@ -80,7 +114,7 @@ class _AddDecisionesPageState extends State<AddDecisionesPage> {
               DropdownButtonFormField<int>(
                 validator: (value) => value == null ? 'required' : null,
                 value: selectedParcela,
-                hint: Text('Variedad'),
+                hint: Text('Parcela'),
                 items: _parcelas
                     .map((label) => DropdownMenuItem(
                           child: Text(label.nombre),
@@ -92,14 +126,51 @@ class _AddDecisionesPageState extends State<AddDecisionesPage> {
                 },
                 onSaved: (value) => setState(() => _test.idParcela = value),
               ),
-              TextFormField(
-                controller: _ctlFecha,
-                decoration: InputDecoration(labelText: 'Fecha'),
-                onSaved: (val) => setState(() => _test.fecha = val),
-                validator: (val) => (val.length == 0 ? 'required' : null),
-              ),
+              GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      onSaved: (val) {
+                        _test.fecha = selectedDate.toString();
+                      },
+                      controller: _dateController,
+                      keyboardType: TextInputType.datetime,
+                      decoration: InputDecoration(
+                        labelText: "Fecha",
+                        icon: Icon(Icons.calendar_today),
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty)
+                          return "Seleccionar una fecha valida";
+                        return null;
+                      },
+                    ),
+                  )),
+              Row(
+                children: <Widget>[
+                  ElevatedButton(
+                    onPressed: () => _onSubmit(),
+                    child: Text('Guardar'),
+                  )
+                ],
+              )
             ],
           ),
         ),
       );
+
+  _onSubmit() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DecisionesPage()),
+    );
+    var form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      if (_test.id == null)
+        await _dbHelper.insertTestParcela(_test);
+      else
+        await _dbHelper.updateTestParcela(_test);
+    }
+  }
 }

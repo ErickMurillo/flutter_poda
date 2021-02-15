@@ -22,7 +22,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
   int selectedFinca;
   List<Variedad> _variedades = [];
   List<Finca> _fincas = [];
-  List<Parcela> _parcelas = [];
+  List _parcelas = [];
   DatabaseHelper _dbHelper;
   var totalArea;
   List<Finca> _areaFinca = [];
@@ -70,7 +70,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
   }
 
   _refreshParcelaList() async {
-    List<Parcela> x = await _dbHelper.fetchParcela();
+    List x = await _dbHelper.fetchParcela();
     setState(() {
       _parcelas = x;
     });
@@ -136,7 +136,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
                     .toList(),
                 onChanged: (value) async {
                   List<Finca> area = await _dbHelper.getFinca(value);
-
+                  print(selectedFinca);
                   setState(() {
                     selectedFinca = value;
                     _areaFinca = area;
@@ -222,27 +222,37 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
                 return Column(
                   children: <Widget>[
                     ListTile(
-                      title: Text(_parcelas[index].nombre.toUpperCase() +
-                          ' FINCA: ' +
-                          _parcelas[index].idFinca.toString()),
-                      subtitle: Text(_parcelas[index].area.toString()),
+                      title: Text(_parcelas[index]['nombre'].toString()),
+                      subtitle: Text('Finca: ' +
+                          _parcelas[index]['finca'].toString() +
+                          '\nArea ' +
+                          _parcelas[index]['area'].toString()),
                       isThreeLine: true,
                       trailing: IconButton(
                           icon: Icon(Icons.delete_sweep),
                           onPressed: () async {
-                            await _dbHelper.deleteParcela(_parcelas[index].id);
+                            await _dbHelper
+                                .deleteParcela(_parcelas[index]['id']);
                             _resetForm();
                             _refreshParcelaList();
                           }),
-                      onTap: () {
+                      onTap: () async {
+                        List<Parcela> x = await _dbHelper
+                            .getParcelaId(_parcelas[index]['id']);
+                        List<Finca> area = await _dbHelper
+                            .getFinca(_parcelas[index]['idFinca']);
+                        double asd = await _validateTotalAreaParcela(
+                            _parcelas[index]['id']);
                         setState(() {
-                          _parcela = _parcelas[index];
-                          _ctlNombre.text = _parcelas[index].nombre;
-                          _ctlArea.text = _parcelas[index].area.toString();
+                          _parcela = x.first;
+                          _ctlNombre.text = _parcelas[index]['nombre'];
+                          _ctlArea.text = _parcelas[index]['area'].toString();
                           _ctlPlantas.text =
-                              _parcelas[index].plantas.toString();
-                          selectedVariedad = _parcelas[index].idVariedad;
-                          selectedFinca = _parcelas[index].idFinca;
+                              _parcelas[index]['plantas'].toString();
+                          selectedVariedad = _parcelas[index]['idVariedad'];
+                          selectedFinca = _parcelas[index]['idFinca'];
+                          _areaFinca = area;
+                          validateParcela = asd;
                         });
                       },
                     ),

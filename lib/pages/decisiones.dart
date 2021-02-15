@@ -11,8 +11,9 @@ class DecisionesPage extends StatefulWidget {
 }
 
 class _DecisionesPageState extends State<DecisionesPage> {
-  List<TestParcela> _tests = [];
+  List _tests = [];
   DatabaseHelper _dbHelper;
+  List<TestParcela> _test;
 
   @override
   void initState() {
@@ -49,7 +50,7 @@ class _DecisionesPageState extends State<DecisionesPage> {
   }
 
   _refreshTestList() async {
-    List<TestParcela> x = await _dbHelper.fetchTestParcela();
+    List x = await _dbHelper.fetchTestParcela();
     setState(() {
       _tests = x;
     });
@@ -64,10 +65,10 @@ class _DecisionesPageState extends State<DecisionesPage> {
                 return Column(
                   children: <Widget>[
                     ListTile(
-                      title: Text(_tests[index].idFinca.toString()),
-                      subtitle: Text(_tests[index].idParcela.toString() +
-                          ' fecha:' +
-                          _tests[index].fecha.toString()),
+                      title: Text(_tests[index]['finca'].toString()),
+                      subtitle: Text(_tests[index]['parcela'].toString() +
+                          '\n fecha: ' +
+                          _tests[index]['fecha'].toString()),
                       isThreeLine: true,
                       //   trailing: IconButton(
                       //       icon: Icon(Icons.delete_sweep),
@@ -75,6 +76,23 @@ class _DecisionesPageState extends State<DecisionesPage> {
                       onTap: () {
                         setState(() {});
                       },
+                      trailing: Wrap(
+                        spacing: 12,
+                        children: <Widget>[
+                          IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () async {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => AddDecisionesPage(
+                                          testid: _tests[index]['id'])),
+                                );
+                              }),
+                          IconButton(
+                              icon: Icon(Icons.add), onPressed: () async {}),
+                        ],
+                      ),
                     ),
                     Divider(
                       height: 5.0,
