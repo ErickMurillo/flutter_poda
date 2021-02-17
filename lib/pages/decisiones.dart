@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_poda/models/test_parcela.dart';
 import 'package:flutter_poda/pages/add_decisiones.dart';
+import 'package:flutter_poda/pages/estaciones.dart';
 import 'package:flutter_poda/providers/db_provider.dart';
 
 class DecisionesPage extends StatefulWidget {
@@ -73,24 +74,28 @@ class _DecisionesPageState extends State<DecisionesPage> {
                       //   trailing: IconButton(
                       //       icon: Icon(Icons.delete_sweep),
                       //       onPressed: () async {}),
-                      onTap: () {
-                        setState(() {});
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => AddDecisionesPage(
+                                  testid: _tests[index]['id'])),
+                        );
                       },
                       trailing: Wrap(
                         spacing: 12,
                         children: <Widget>[
+                          //   IconButton(icon: Icon(Icons.edit), onPressed: () {}),
                           IconButton(
-                              icon: Icon(Icons.edit),
+                              icon: Icon(Icons.add),
                               onPressed: () async {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => AddDecisionesPage(
+                                      builder: (context) => EstacionesPage(
                                           testid: _tests[index]['id'])),
                                 );
                               }),
-                          IconButton(
-                              icon: Icon(Icons.add), onPressed: () async {}),
                         ],
                       ),
                     ),

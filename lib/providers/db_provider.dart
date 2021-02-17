@@ -59,6 +59,23 @@ class DatabaseHelper {
           'FOREIGN KEY(idFinca) REFERENCES Finca(id),'
           'FOREIGN KEY(idParcela) REFERENCES Parcela(id)'
           ')');
+      await db.execute('CREATE TABLE if not exists Estaciones('
+          'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'estacion INTEGER,'
+          'planta INTEGER,'
+          'idTest INTEGER,'
+          'altura REAL,'
+          'ancho REAL,'
+          'largo REAL,'
+          'buenaArquitectura TEXT,'
+          'ramasContacto TEXT,'
+          'ramasEntrecruzados TEXT,'
+          'ramasSuelo TEXT,'
+          'chupones TEXT,'
+          'entradaLuz TEXT,'
+          'produccion TEXT,'
+          'FOREIGN KEY(idTest) REFERENCES TestParcela(id)'
+          ')');
     });
   }
 

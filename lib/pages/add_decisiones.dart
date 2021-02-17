@@ -44,7 +44,9 @@ class _AddDecisionesPageState extends State<AddDecisionesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Tomar datos y decisiones"),
+        title: Text(
+          widget.testid == null ? "Agregar datos" : "Modificar datos",
+        ),
       ),
       body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
