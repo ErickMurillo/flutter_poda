@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter_poda/models/estaciones.dart';
 import 'package:flutter_poda/models/finca.dart';
 import 'package:flutter_poda/models/parcelas.dart';
 import 'package:flutter_poda/models/test_parcela.dart';
@@ -226,5 +227,23 @@ class DatabaseHelper {
     return test.length == 0
         ? []
         : test.map((e) => TestParcela.fromMap(e)).toList();
+  }
+
+  // estaciones CRUD
+  Future<int> insertEstacion(Estaciones estacion) async {
+    Database db = await database;
+    return await db.insert('Estaciones', estacion.toMap());
+  }
+
+  Future<int> updateEstacion(Estaciones estacion) async {
+    Database db = await database;
+    return await db.update('Estaciones', estacion.toMap(),
+        where: 'id=?', whereArgs: [estacion.id]);
+  }
+
+  Future<List> getEstaciones(int id) async {
+    Database db = await database;
+    var result = await db.rawQuery('SELECT * from Estaciones where id=?', [id]);
+    return result;
   }
 }

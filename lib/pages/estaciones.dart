@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_poda/pages/new_test.dart';
+import 'package:flutter_poda/providers/db_provider.dart';
 
 class EstacionesPage extends StatefulWidget {
   final int testid;
@@ -10,6 +11,25 @@ class EstacionesPage extends StatefulWidget {
 }
 
 class _EstacionesPageState extends State<EstacionesPage> {
+  DatabaseHelper _dbHelper;
+  List result;
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      _dbHelper = DatabaseHelper.instance;
+      _count();
+    });
+  }
+
+  _count() async {
+    List x = await _dbHelper.getEstaciones(widget.testid);
+    setState(() {
+      result = x;
+      print(result);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
