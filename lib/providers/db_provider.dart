@@ -241,9 +241,34 @@ class DatabaseHelper {
         where: 'id=?', whereArgs: [estacion.id]);
   }
 
-  Future<List> getEstaciones(int id) async {
+  Future<List> getEstaciones(int idTest, int estacion) async {
     Database db = await database;
-    var result = await db.rawQuery('SELECT * from Estaciones where id=?', [id]);
+    var result = await db.rawQuery(
+        'SELECT * from Estaciones where idTest=? and estacion=? ',
+        [idTest, estacion]);
     return result;
+  }
+
+  //consolidados
+  Future<List> getAlturas(int idTest) async {
+    Database db = await database;
+    var result1 = await db.rawQuery(
+        'SELECT SUM(altura) as altura from Estaciones WHERE estacion=1 and idTest=? ',
+        [idTest]);
+    var result2 = await db.rawQuery(
+        'SELECT SUM(altura) as altura from Estaciones WHERE estacion=2 and idTest=? ',
+        [idTest]);
+    var result3 = await db.rawQuery(
+        'SELECT SUM(altura) as altura from Estaciones WHERE estacion=3 and idTest=? ',
+        [idTest]);
+    var total = result1.first['altura'] +
+        result2.first['altura'] +
+        result3.first['altura'];
+    return [
+      result1.first['altura'],
+      result2.first['altura'],
+      result3.first['altura'],
+      total
+    ];
   }
 }
