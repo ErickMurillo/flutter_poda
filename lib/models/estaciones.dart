@@ -39,13 +39,13 @@ class Estaciones {
   double altura;
   double ancho;
   double largo;
-  String buenaArquitectura;
-  String ramasContacto;
-  String ramasEntrecruzados;
-  String ramasSuelo;
-  String chupones;
-  String entradaLuz;
-  String produccion;
+  int buenaArquitectura;
+  int ramasContacto;
+  int ramasEntrecruzados;
+  int ramasSuelo;
+  int chupones;
+  int entradaLuz;
+  int produccion;
 
   Map<String, dynamic> toMap() {
     var map = <String, dynamic>{

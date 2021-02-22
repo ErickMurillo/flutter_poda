@@ -26,7 +26,6 @@ class _NewTest2PageState extends State<NewTest2Page> {
     List x = await _dbHelper.getAlturas(widget.testid);
     setState(() {
       result = x;
-      print(result);
     });
   }
 
@@ -51,6 +50,7 @@ class _NewTest2PageState extends State<NewTest2Page> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: DataTable(
+                            columnSpacing: 25.0,
                             columns: const <DataColumn>[
                               DataColumn(
                                 label: Text(
@@ -83,34 +83,53 @@ class _NewTest2PageState extends State<NewTest2Page> {
                                 ),
                               ),
                             ],
-                            rows: const <DataRow>[
-                              DataRow(
-                                cells: <DataCell>[
-                                  DataCell(Text('Mohit')),
-                                  DataCell(Text('23')),
-                                  DataCell(Text('12 ')),
-                                  DataCell(Text('2')),
-                                  DataCell(Text('1')),
-                                ],
-                              ),
-                              DataRow(
-                                cells: <DataCell>[
-                                  DataCell(Text('Ramas cercanas al suelo %')),
-                                  DataCell(Text('2')),
-                                  DataCell(Text('1')),
-                                  DataCell(Text('2')),
-                                  DataCell(Text('25')),
-                                ],
-                              ),
-                            ],
+                            rows: result
+                                    ?.map(((element) => DataRow(
+                                          cells: <DataCell>[
+                                            DataCell(
+                                                Text(element[0].toString())),
+                                            DataCell(Text(
+                                                element[1].toStringAsFixed(2))),
+                                            DataCell(Text(
+                                                element[2].toStringAsFixed(2))),
+                                            DataCell(Text(
+                                                element[3].toStringAsFixed(2))),
+                                            DataCell(Text(
+                                                element[4].toStringAsFixed(2)))
+                                          ],
+                                        )))
+                                    ?.toList() ??
+                                [],
                           ),
                         ),
                       )
-                    : Card(
-                        child: ListTile(
-                            title: Text('Motivation $index'),
-                            subtitle: Text(
-                                'this is a description of the motivation')),
+                    : Column(
+                        children: [
+                          Card(
+                            child: ListTile(
+                                title: Text('Motivation $index'),
+                                subtitle: Text(
+                                    'this is a description of the motivation')),
+                          ),
+                          Card(
+                            child: ListTile(
+                                title: Text('Motivation $index'),
+                                subtitle: Text(
+                                    'this is a description of the motivation')),
+                          ),
+                          Card(
+                            child: ListTile(
+                                title: Text('Motivation $index'),
+                                subtitle: Text(
+                                    'this is a description of the motivation')),
+                          ),
+                          Card(
+                            child: ListTile(
+                                title: Text('Motivation $index'),
+                                subtitle: Text(
+                                    'this is a description of the motivation')),
+                          ),
+                        ],
                       );
               },
             ),

@@ -68,13 +68,13 @@ class DatabaseHelper {
           'altura REAL,'
           'ancho REAL,'
           'largo REAL,'
-          'buenaArquitectura TEXT,'
-          'ramasContacto TEXT,'
-          'ramasEntrecruzados TEXT,'
-          'ramasSuelo TEXT,'
-          'chupones TEXT,'
-          'entradaLuz TEXT,'
-          'produccion TEXT,'
+          'buenaArquitectura INTEGER,'
+          'ramasContacto INTEGER,'
+          'ramasEntrecruzados INTEGER,'
+          'ramasSuelo INTEGER,'
+          'chupones INTEGER,'
+          'entradaLuz INTEGER,'
+          'produccion INTEGER,'
           'FOREIGN KEY(idTest) REFERENCES TestParcela(id)'
           ')');
     });
@@ -252,23 +252,184 @@ class DatabaseHelper {
   //consolidados
   Future<List> getAlturas(int idTest) async {
     Database db = await database;
-    var result1 = await db.rawQuery(
-        'SELECT SUM(altura) as altura from Estaciones WHERE estacion=1 and idTest=? ',
+    List lista = [];
+    var estacion1 = await db.rawQuery(
+        'SELECT SUM(altura) as altura,SUM(ancho) as ancho, SUM(largo) as largo,'
+        'AVG(buenaArquitectura) * 100 as arquitectura, AVG(ramasContacto) * 100 as contacto,'
+        'AVG(ramasEntrecruzados) * 100 as entrecruzados, AVG(ramasSuelo) * 100 as suelo,'
+        'AVG(chupones) * 100 as chupones, AVG(entradaLuz) * 100 as luz'
+        ' from Estaciones WHERE estacion=1 and idTest=?',
         [idTest]);
-    var result2 = await db.rawQuery(
-        'SELECT SUM(altura) as altura from Estaciones WHERE estacion=2 and idTest=? ',
+    var estacion2 = await db.rawQuery(
+        'SELECT SUM(altura) as altura,SUM(ancho) as ancho, SUM(largo) as largo,'
+        'AVG(buenaArquitectura) * 100 as arquitectura, AVG(ramasContacto) * 100 as contacto,'
+        'AVG(ramasEntrecruzados) * 100 as entrecruzados, AVG(ramasSuelo) * 100 as suelo,'
+        'AVG(chupones) * 100 as chupones, AVG(entradaLuz) * 100 as luz'
+        ' from Estaciones WHERE estacion=2 and idTest=?',
         [idTest]);
-    var result3 = await db.rawQuery(
-        'SELECT SUM(altura) as altura from Estaciones WHERE estacion=3 and idTest=? ',
+    var estacion3 = await db.rawQuery(
+        'SELECT SUM(altura) as altura,SUM(ancho) as ancho, SUM(largo) as largo,'
+        'AVG(buenaArquitectura) * 100 as arquitectura, AVG(ramasContacto) * 100 as contacto,'
+        'AVG(ramasEntrecruzados) * 100 as entrecruzados, AVG(ramasSuelo) * 100 as suelo,'
+        'AVG(chupones) * 100 as chupones, AVG(entradaLuz) * 100 as luz'
+        ' from Estaciones WHERE estacion=2 and idTest=?',
         [idTest]);
-    var total = result1.first['altura'] +
-        result2.first['altura'] +
-        result3.first['altura'];
-    return [
-      result1.first['altura'],
-      result2.first['altura'],
-      result3.first['altura'],
-      total
-    ];
+
+    //altura
+    var totalAltura = estacion1.first['altura'] +
+        estacion2.first['altura'] +
+        estacion3.first['altura'];
+
+    lista.add([
+      'Altura mt',
+      estacion1.first['altura'],
+      estacion2.first['altura'],
+      estacion3.first['altura'],
+      totalAltura
+    ]);
+
+    //ancho
+    var totalAncho = estacion1.first['ancho'] +
+        estacion2.first['ancho'] +
+        estacion3.first['ancho'];
+
+    lista.add([
+      'Ancho mt',
+      estacion1.first['ancho'],
+      estacion2.first['ancho'],
+      estacion3.first['ancho'],
+      totalAncho
+    ]);
+
+    // alto
+    var totalLargo = estacion1.first['largo'] +
+        estacion2.first['largo'] +
+        estacion3.first['largo'];
+    lista.add([
+      'Largo mt',
+      estacion1.first['largo'],
+      estacion2.first['largo'],
+      estacion3.first['largo'],
+      totalLargo
+    ]);
+
+    //arquitectura
+    var totalArquitectura = (estacion1.first['arquitectura'] +
+            estacion2.first['arquitectura'] +
+            estacion3.first['arquitectura']) /
+        3;
+    lista.add([
+      'Buena arquitectura %',
+      estacion1.first['arquitectura'],
+      estacion2.first['arquitectura'],
+      estacion3.first['arquitectura'],
+      totalArquitectura
+    ]);
+
+    //ramas contacto
+    var totalContacto = (estacion1.first['contacto'] +
+            estacion2.first['contacto'] +
+            estacion3.first['contacto']) /
+        3;
+    lista.add([
+      'Ramas en contacto %',
+      estacion1.first['contacto'],
+      estacion2.first['contacto'],
+      estacion3.first['contacto'],
+      totalContacto
+    ]);
+
+    //ramasEntrecruzados
+    var totalEntrecruzados = (estacion1.first['entrecruzados'] +
+            estacion2.first['entrecruzados'] +
+            estacion3.first['entrecruzados']) /
+        3;
+    lista.add([
+      'Ramas entrecruzados %',
+      estacion1.first['entrecruzados'],
+      estacion2.first['entrecruzados'],
+      estacion3.first['entrecruzados'],
+      totalEntrecruzados
+    ]);
+
+    //ramas suelo
+    var totalSuelo = (estacion1.first['suelo'] +
+            estacion2.first['suelo'] +
+            estacion3.first['suelo']) /
+        3;
+    lista.add([
+      'Ramas cercanas al suelo %',
+      estacion1.first['suelo'],
+      estacion2.first['suelo'],
+      estacion3.first['suelo'],
+      totalSuelo
+    ]);
+
+    //ramas suelo
+    var totalChupones = (estacion1.first['suelo'] +
+            estacion2.first['suelo'] +
+            estacion3.first['suelo']) /
+        3;
+    lista.add([
+      'Chupones %',
+      estacion1.first['suelo'],
+      estacion2.first['suelo'],
+      estacion3.first['suelo'],
+      totalChupones
+    ]);
+
+    //entrada luz
+    var totalLuz = (estacion1.first['luz'] +
+            estacion2.first['luz'] +
+            estacion3.first['luz']) /
+        3;
+    lista.add([
+      'Entrada de luz %',
+      estacion1.first['luz'],
+      estacion2.first['luz'],
+      estacion3.first['luz'],
+      totalLuz
+    ]);
+
+    //produccion alta
+    var prod1 = await db.rawQuery(
+        'SELECT COUNT(produccion) as alta from Estaciones WHERE estacion=1 and idTest=? and produccion=3',
+        [idTest]);
+
+    var prod2 = await db.rawQuery(
+        'SELECT COUNT(produccion) as alta from Estaciones WHERE estacion=2 and idTest=? and produccion=3',
+        [idTest]);
+
+    var prod3 = await db.rawQuery(
+        'SELECT COUNT(produccion) as alta from Estaciones WHERE estacion=3 and idTest=? and produccion=3',
+        [idTest]);
+
+    // var totalprodAlta =
+    //     ([prod1.first / 10]) + prod2.first['alta'] + prod3.first['alta'];
+
+    // lista.add([
+    //   '% Producción Alta',
+    //   prod1.first['alta'],
+    //   prod2.first['alta'],
+    //   prod3.first['alta'],
+    //   totalprodAlta
+    // ]);
+
+    // lista.add([
+    //   '% Producción Media',
+    //   prod1.first['media'],
+    //   prod2.first['media'],
+    //   prod3.first['media'],
+    //   totalLuz
+    // ]);
+
+    // lista.add([
+    //   '% Producción Baja',
+    //   prod1.first['baja'],
+    //   prod2.first['baja'],
+    //   prod3.first['baja'],
+    //   totalLuz
+    // ]);
+    return lista;
   }
 }
