@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_poda/models/estaciones.dart';
 import 'package:flutter_poda/models/finca.dart';
 import 'package:flutter_poda/models/parcelas.dart';
+import 'package:flutter_poda/models/resultados.dart';
 import 'package:flutter_poda/models/test_parcela.dart';
 import 'package:flutter_poda/models/variedad.dart';
 import 'package:path/path.dart';
@@ -75,6 +76,17 @@ class DatabaseHelper {
           'chupones INTEGER,'
           'entradaLuz INTEGER,'
           'produccion INTEGER,'
+          'FOREIGN KEY(idTest) REFERENCES TestParcela(id)'
+          ')');
+      await db.execute('CREATE TABLE if not exists Resultado('
+          'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+          'problemasPoda TEXT,'
+          'tipoPoda TEXT,'
+          'aplicarPoda TEXT,'
+          'plantasVigor TEXT,'
+          'entradaLuz TEXT,'
+          'mesesPoda TEXT,'
+          'idTest INTEGER,'
           'FOREIGN KEY(idTest) REFERENCES TestParcela(id)'
           ')');
     });
@@ -164,10 +176,12 @@ class DatabaseHelper {
 //         : parcelas.map((e) => Parcela.fromMap(e)).toList();
 //   }
 
-  Future<List> fetchParcela() async {
+  Future<List> fetchParcela(int idFinca) async {
     Database db = await database;
     var result = await db.rawQuery(
-        "SELECT Parcela.id, Parcela.nombre, Finca.nombre as finca, Parcela.area, Parcela.plantas, Parcela.idVariedad, Parcela.idFinca FROM Parcela INNER JOIN Finca on Finca.id = Parcela.idFinca");
+        "SELECT Parcela.id, Parcela.nombre, Finca.nombre as finca, Parcela.area,"
+        "Parcela.plantas, Parcela.idVariedad, Parcela.idFinca FROM Parcela INNER JOIN Finca on Finca.id = Parcela.idFinca WHERE idFinca=?",
+        [idFinca]);
     return result;
   }
 
@@ -404,32 +418,95 @@ class DatabaseHelper {
         'SELECT COUNT(produccion) as alta from Estaciones WHERE estacion=3 and idTest=? and produccion=3',
         [idTest]);
 
-    // var totalprodAlta =
-    //     ([prod1.first / 10]) + prod2.first['alta'] + prod3.first['alta'];
+    var totalprodAlta = (prod1.first['alta'] / 10) * 100 +
+        (prod2.first['alta'] / 10) * 100 +
+        (prod3.first['alta'] / 10) * 100;
 
-    // lista.add([
-    //   '% Producción Alta',
-    //   prod1.first['alta'],
-    //   prod2.first['alta'],
-    //   prod3.first['alta'],
-    //   totalprodAlta
-    // ]);
+    lista.add([
+      '% Producción Alta',
+      (prod1.first['alta'] / 10) * 100,
+      (prod2.first['alta'] / 10) * 100,
+      (prod3.first['alta'] / 10) * 100,
+      totalprodAlta / 3
+    ]);
 
-    // lista.add([
-    //   '% Producción Media',
-    //   prod1.first['media'],
-    //   prod2.first['media'],
-    //   prod3.first['media'],
-    //   totalLuz
-    // ]);
+    //produccion media
+    var prod1media = await db.rawQuery(
+        'SELECT COUNT(produccion) as media from Estaciones WHERE estacion=1 and idTest=? and produccion=2',
+        [idTest]);
 
-    // lista.add([
-    //   '% Producción Baja',
-    //   prod1.first['baja'],
-    //   prod2.first['baja'],
-    //   prod3.first['baja'],
-    //   totalLuz
-    // ]);
+    var prod2media = await db.rawQuery(
+        'SELECT COUNT(produccion) as media from Estaciones WHERE estacion=2 and idTest=? and produccion=2',
+        [idTest]);
+
+    var prod3media = await db.rawQuery(
+        'SELECT COUNT(produccion) as media from Estaciones WHERE estacion=3 and idTest=? and produccion=2',
+        [idTest]);
+
+    var totalprodmedia = (prod1media.first['media'] / 10) * 100 +
+        (prod2media.first['media'] / 10) * 100 +
+        (prod3media.first['media'] / 10) * 100;
+
+    lista.add([
+      '% Producción Media',
+      (prod1media.first['media'] / 10) * 100,
+      (prod2media.first['media'] / 10) * 100,
+      (prod3media.first['media'] / 10) * 100,
+      totalprodmedia / 3
+    ]);
+
+    //produccion baja
+    var prod1baja = await db.rawQuery(
+        'SELECT COUNT(produccion) as baja from Estaciones WHERE estacion=1 and idTest=? and produccion=1',
+        [idTest]);
+
+    var prod2baja = await db.rawQuery(
+        'SELECT COUNT(produccion) as baja from Estaciones WHERE estacion=2 and idTest=? and produccion=1',
+        [idTest]);
+
+    var prod3baja = await db.rawQuery(
+        'SELECT COUNT(produccion) as baja from Estaciones WHERE estacion=3 and idTest=? and produccion=1',
+        [idTest]);
+
+    var totalprodbaja = (prod1baja.first['baja'] / 10) * 100 +
+        (prod2baja.first['baja'] / 10) * 100 +
+        (prod3baja.first['baja'] / 10) * 100;
+
+    lista.add([
+      '% Producción Baja',
+      (prod1baja.first['baja'] / 10) * 100,
+      (prod2baja.first['baja'] / 10) * 100,
+      (prod3baja.first['baja'] / 10) * 100,
+      totalprodbaja / 3
+    ]);
+
     return lista;
+  }
+
+  //resultado CRUD ---------------------------------------------------
+  Future<int> insertResultado(Resultado resultado) async {
+    Database db = await database;
+    return await db.insert('Resultado', resultado.toMap());
+  }
+
+  Future<int> updateResultado(Resultado resultado) async {
+    Database db = await database;
+    return await db.update('Resultado', resultado.toMap(),
+        where: 'id=?', whereArgs: [resultado.id]);
+  }
+
+  Future<List> getResultado(int idTest) async {
+    Database db = await database;
+    var result =
+        await db.rawQuery('SELECT * from Resultado where idTest=?', [idTest]);
+    return result;
+  }
+
+  Future<List<Resultado>> fetchResultado() async {
+    Database db = await database;
+    List<Map> resultados = await db.query('Resultado');
+    return resultados.length == 0
+        ? []
+        : resultados.map((e) => Resultado.fromMap(e)).toList();
   }
 }

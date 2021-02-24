@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_poda/models/estaciones.dart';
-import 'package:flutter_poda/pages/new_test2.dart';
 import 'package:flutter_poda/providers/db_provider.dart';
 import 'package:checkbox_formfield/checkbox_formfield.dart';
+import 'package:flutter_poda/models/resultados.dart';
+import 'package:multiselect_formfield/multiselect_formfield.dart';
+import 'package:select_form_field/select_form_field.dart';
 
 class EstacionesPage extends StatefulWidget {
   final int testid;
@@ -18,15 +20,15 @@ class _EstacionesPageState extends State<EstacionesPage> {
   int planta1 = 0;
   int planta2 = 0;
   int planta3 = 0;
-  int id;
+  bool resultTest;
 
   @override
   void initState() {
     super.initState();
     setState(() {
       _dbHelper = DatabaseHelper.instance;
-      id = widget.testid;
-      _count(id);
+      _count(widget.testid);
+      _getResult(widget.testid);
     });
   }
 
@@ -42,7 +44,7 @@ class _EstacionesPageState extends State<EstacionesPage> {
   }
 
   void refreshData() {
-    _count(id);
+    _count(widget.testid);
   }
 
   onGoBack(dynamic value) {
@@ -57,6 +59,16 @@ class _EstacionesPageState extends State<EstacionesPage> {
     Navigator.push(context, route).then(onGoBack);
   }
 
+  _getResult(int id) async {
+    List x = await _dbHelper.getResultado(id);
+    setState(() {
+      if (x != null)
+        return resultTest == true;
+      else
+        return resultTest == false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,18 +80,29 @@ class _EstacionesPageState extends State<EstacionesPage> {
           children: <Widget>[
             _list(),
             planta1 == 10 && planta2 == 10 && planta3 == 10
-                ? Container(
-                    color: Colors.white,
-                    child: RaisedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                NewTest2Page(testid: widget.testid)),
-                      ).then((setState) => _count(widget.testid)),
-                      child: Text('Ver Datos'),
-                    ),
-                  )
+                ? resultTest == false
+                    ? Container(
+                        color: Colors.white,
+                        child: RaisedButton(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    NewTest2Page(testid: widget.testid)),
+                          ).then((setState) => {
+                                _count(widget.testid),
+                                _getResult(widget.testid)
+                              }),
+                          child: Text('Ver Datos'),
+                        ),
+                      )
+                    : Container(
+                        color: Colors.white,
+                        child: RaisedButton(
+                          onPressed: () => null,
+                          child: Text('Inicio'),
+                        ),
+                      )
                 : Container(),
           ]),
     );
@@ -128,14 +151,7 @@ class _EstacionesPageState extends State<EstacionesPage> {
                             IconButton(
                                 icon: Icon(Icons.add),
                                 onPressed: () async {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => NewTestPage(
-                                            testid: widget.testid,
-                                            estacion: 2,
-                                            planta: planta2 + 1)),
-                                  );
+                                  navigateSecondPage(2, planta2);
                                 })
                             : IconButton(
                                 icon: Icon(Icons.check), onPressed: () {}),
@@ -153,14 +169,7 @@ class _EstacionesPageState extends State<EstacionesPage> {
                             IconButton(
                                 icon: Icon(Icons.add),
                                 onPressed: () async {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => NewTestPage(
-                                            testid: widget.testid,
-                                            estacion: 3,
-                                            planta: planta3 + 1)),
-                                  );
+                                  navigateSecondPage(3, planta3);
                                 })
                             : IconButton(
                                 icon: Icon(Icons.check), onPressed: () {}),
@@ -173,7 +182,7 @@ class _EstacionesPageState extends State<EstacionesPage> {
       );
 }
 
-// vista para agregar plantas a la estacion
+// vista para agregar plantas a la estacion ////////////////////////////////////////////////////////////
 class NewTestPage extends StatefulWidget {
   final int testid;
   final int estacion;
@@ -192,10 +201,6 @@ class _NewTestPageState extends State<NewTestPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  final _estacionesCtls = TextEditingController();
-
-  final _plantasCtls = TextEditingController();
-
   final _alturaCtls = TextEditingController();
 
   final _anchoCtls = TextEditingController();
@@ -204,17 +209,19 @@ class _NewTestPageState extends State<NewTestPage> {
 
   int radios = 3;
   String numPlanta;
+  String numEstacion;
 
   @override
   void initState() {
     super.initState();
     setState(() {
       _dbHelper = DatabaseHelper.instance;
-      _estacionesCtls.text = widget.estacion.toString();
-      _plantasCtls.text = widget.planta.toString();
       _estaciones.idTest = widget.testid;
       _estaciones.produccion = 3;
       numPlanta = widget.planta.toString();
+      numEstacion = widget.estacion.toString();
+      _estaciones.estacion = widget.estacion;
+      _estaciones.planta = widget.planta;
     });
   }
 
@@ -222,7 +229,7 @@ class _NewTestPageState extends State<NewTestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Planta #$numPlanta"),
+        title: Text("Planta #$numPlanta Estación #$numEstacion"),
       ),
       body: ListView(
         shrinkWrap: true,
@@ -234,20 +241,6 @@ class _NewTestPageState extends State<NewTestPage> {
               child: Form(
                   key: _formKey,
                   child: Column(children: <Widget>[
-                    TextFormField(
-                      enabled: false,
-                      controller: _estacionesCtls,
-                      decoration: InputDecoration(labelText: 'Estacion'),
-                      onSaved: (val) =>
-                          setState(() => _estaciones.estacion = int.parse(val)),
-                    ),
-                    TextFormField(
-                      enabled: false,
-                      controller: _plantasCtls,
-                      decoration: InputDecoration(labelText: 'Planta'),
-                      onSaved: (val) =>
-                          setState(() => _estaciones.planta = int.parse(val)),
-                    ),
                     TextFormField(
                       controller: _alturaCtls,
                       decoration: InputDecoration(labelText: 'Altura en mt'),
@@ -386,13 +379,415 @@ class _NewTestPageState extends State<NewTestPage> {
         await _dbHelper.updateEstacion(_estaciones);
 
       form.reset();
-      _estacionesCtls.clear();
-      _plantasCtls.clear();
       _alturaCtls.clear();
       _anchoCtls.clear();
       _largoCtls.clear();
 
       Navigator.pop(context);
     }
+  }
+}
+
+//////////////////////  Resultados ///////////////////////////////////////////////////////////////////
+class NewTest2Page extends StatefulWidget {
+  final int testid;
+  const NewTest2Page({Key key, this.testid}) : super(key: key);
+
+  @override
+  _NewTest2PageState createState() => _NewTest2PageState();
+}
+
+class _NewTest2PageState extends State<NewTest2Page> {
+  DatabaseHelper _dbHelper;
+  List result;
+  final _formKey = GlobalKey<FormState>();
+  final _ctlAplicar = TextEditingController();
+  final _ctlVigor = TextEditingController();
+  final _ctlLuz = TextEditingController();
+  Resultado _resultado = Resultado();
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      _dbHelper = DatabaseHelper.instance;
+      _getAltura();
+      _resultado.idTest = widget.testid;
+    });
+  }
+
+  _getAltura() async {
+    List x = await _dbHelper.getAlturas(widget.testid);
+    setState(() {
+      result = x;
+    });
+  }
+
+  _submit() async {
+    var form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      if (_resultado.id == null)
+        await _dbHelper.insertResultado(_resultado);
+      else
+        await _dbHelper.updateResultado(_resultado);
+
+      form.reset();
+      _ctlAplicar.clear();
+      _ctlVigor.clear();
+      _ctlLuz.clear();
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Datos consolidados'),
+        centerTitle: true,
+        actions: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(right: 20.0),
+              child: GestureDetector(
+                onTap: () {
+                  _submit();
+                },
+                child: Icon(
+                  Icons.save,
+                  size: 26.0,
+                ),
+              )),
+        ],
+      ),
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Expanded(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: 2,
+              itemBuilder: (context, index) {
+                return index == 0
+                    ? Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: DataTable(
+                            columnSpacing: 25.0,
+                            columns: const <DataColumn>[
+                              DataColumn(
+                                label: Text(
+                                  'Estación',
+                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  '1',
+                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  '2',
+                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  '3',
+                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'Total',
+                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                ),
+                              ),
+                            ],
+                            rows: result
+                                    ?.map(((element) => DataRow(
+                                          cells: <DataCell>[
+                                            DataCell(
+                                                Text(element[0].toString())),
+                                            DataCell(Text(
+                                                element[1].toStringAsFixed(0))),
+                                            DataCell(Text(
+                                                element[2].toStringAsFixed(0))),
+                                            DataCell(Text(
+                                                element[3].toStringAsFixed(0))),
+                                            DataCell(Text(
+                                                element[4].toStringAsFixed(0)))
+                                          ],
+                                        )))
+                                    ?.toList() ??
+                                [],
+                          ),
+                        ),
+                      )
+                    : Container(
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            children: <Widget>[
+                              Card(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 10),
+                                child: MultiSelectFormField(
+                                    title: Text(
+                                      "Problemas de poda",
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    dataSource: [
+                                      {
+                                        "display": "Altura",
+                                        "value": '1',
+                                      },
+                                      {
+                                        "display": "Ancho",
+                                        "value": '2',
+                                      },
+                                      {
+                                        "display": "Ramas",
+                                        "value": '3',
+                                      },
+                                      {
+                                        "display": "Arquitectura",
+                                        "value": '4',
+                                      },
+                                      {
+                                        "display": "Chupones",
+                                        "value": '5',
+                                      },
+                                      {
+                                        "display": "Poca entrada de luz",
+                                        "value": '6',
+                                      },
+                                      {
+                                        "display": "Baja productividad",
+                                        "value": '7',
+                                      },
+                                      {
+                                        "display": "Ninguno",
+                                        "value": '0',
+                                      },
+                                    ],
+                                    hintWidget: Text('Seleccione uno o más'),
+                                    textField: 'display',
+                                    valueField: 'value',
+                                    okButtonLabel: 'OK',
+                                    cancelButtonLabel: 'CANCELAR',
+                                    onSaved: (value) {
+                                      if (value == null) return;
+                                      setState(() {
+                                        _resultado.problemasPoda =
+                                            value.toString();
+                                      });
+                                    }),
+                              ),
+                              Card(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 10),
+                                child: MultiSelectFormField(
+                                    title: Text(
+                                      "¿Qué tipo de poda debemos aplicar?",
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    dataSource: [
+                                      {
+                                        "display": "Poda de altura",
+                                        "value": '1',
+                                      },
+                                      {
+                                        "display": "Poda de ramas",
+                                        "value": '2',
+                                      },
+                                      {
+                                        "display": "Poda de formación",
+                                        "value": '3',
+                                      },
+                                      {
+                                        "display": "Deschuponar",
+                                        "value": '4',
+                                      },
+                                      {
+                                        "display": "Cambio de coronas",
+                                        "value": '5',
+                                      },
+                                    ],
+                                    hintWidget: Text('Seleccione uno o más'),
+                                    textField: 'display',
+                                    valueField: 'value',
+                                    okButtonLabel: 'OK',
+                                    cancelButtonLabel: 'CANCELAR',
+                                    onSaved: (value) {
+                                      if (value == null) return;
+                                      setState(() {
+                                        _resultado.tipoPoda = value.toString();
+                                      });
+                                    }),
+                              ),
+                              Card(
+                                  margin: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 10),
+                                  child: SelectFormField(
+                                    controller: _ctlAplicar,
+                                    items: [
+                                      {
+                                        "label": "En toda la parcela",
+                                        "value": '1',
+                                      },
+                                      {
+                                        "label": "En varios partes",
+                                        "value": '2',
+                                      },
+                                      {
+                                        "label": "En algunas partes",
+                                        "value": '3',
+                                      },
+                                    ],
+                                    labelText:
+                                        '¿En qué parte vamos a aplicar las podas?',
+                                    onChanged: (val) => print(val),
+                                    onSaved: (val) =>
+                                        _resultado.aplicarPoda = val,
+                                    validator: (val) =>
+                                        (val == null ? 'required' : null),
+                                  )),
+                              Card(
+                                  margin: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 10),
+                                  child: SelectFormField(
+                                    controller: _ctlVigor,
+                                    items: [
+                                      {
+                                        "label": "Todas las plantas",
+                                        "value": '1',
+                                      },
+                                      {
+                                        "label": "Algunas de las plantas",
+                                        "value": '2',
+                                      },
+                                      {
+                                        "label": "Ninguna de las planta",
+                                        "value": '3',
+                                      },
+                                    ],
+                                    labelText:
+                                        '¿Las plantas tiene suficiente vigor?',
+                                    onChanged: (val) => print(val),
+                                    onSaved: (val) =>
+                                        _resultado.plantasVigor = val,
+                                    validator: (val) =>
+                                        (val == null ? 'required' : null),
+                                  )),
+                              Card(
+                                  margin: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 10),
+                                  child: SelectFormField(
+                                    controller: _ctlLuz,
+                                    items: [
+                                      {
+                                        "label": "Poda de copa",
+                                        "value": '1',
+                                      },
+                                      {
+                                        "label": "Poda de ramas entrecruzadas",
+                                        "value": '2',
+                                      },
+                                      {
+                                        "label": "Arreglo de la sombra",
+                                        "value": '3',
+                                      },
+                                    ],
+                                    labelText:
+                                        '¿Cómo podemos mejorar la entrada de luz?',
+                                    onChanged: (val) => print(val),
+                                    onSaved: (val) =>
+                                        _resultado.entradaLuz = val,
+                                    validator: (val) =>
+                                        (val == null ? 'required' : null),
+                                  )),
+                              Card(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 10),
+                                child: MultiSelectFormField(
+                                    title: Text(
+                                      "¿Cúando vamos a realizar las podas?",
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    dataSource: [
+                                      {
+                                        "display": "Enero",
+                                        "value": '1',
+                                      },
+                                      {
+                                        "display": "Febrero",
+                                        "value": '2',
+                                      },
+                                      {
+                                        "display": "Marzo",
+                                        "value": '3',
+                                      },
+                                      {
+                                        "display": "Abril",
+                                        "value": '4',
+                                      },
+                                      {
+                                        "display": "Mayo",
+                                        "value": '5',
+                                      },
+                                      {
+                                        "display": "Junio",
+                                        "value": '6',
+                                      },
+                                      {
+                                        "display": "Julio",
+                                        "value": '7',
+                                      },
+                                      {
+                                        "display": "Agosto",
+                                        "value": '8',
+                                      },
+                                      {
+                                        "display": "Septiembre",
+                                        "value": '9',
+                                      },
+                                      {
+                                        "display": "Octubre",
+                                        "value": '10',
+                                      },
+                                      {
+                                        "display": "Noviembre",
+                                        "value": '11',
+                                      },
+                                      {
+                                        "display": "Diciembre",
+                                        "value": '12',
+                                      },
+                                    ],
+                                    hintWidget: Text('Seleccione uno o más'),
+                                    textField: 'display',
+                                    valueField: 'value',
+                                    okButtonLabel: 'OK',
+                                    cancelButtonLabel: 'CANCELAR',
+                                    onSaved: (value) {
+                                      if (value == null) return;
+                                      setState(() {
+                                        _resultado.mesesPoda = value.toString();
+                                      });
+                                    }),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
