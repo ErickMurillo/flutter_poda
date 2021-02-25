@@ -230,7 +230,7 @@ class DatabaseHelper {
   Future<List> fetchTestParcela() async {
     Database db = await database;
     var result = await db.rawQuery(
-        "SELECT TestParcela.id, Parcela.nombre as parcela, Finca.nombre as finca, TestParcela.fecha FROM TestParcela INNER JOIN Finca on Finca.id = TestParcela.idFinca INNER JOIN Parcela on Parcela.id = TestParcela.idParcela");
+        "SELECT TestParcela.id, Parcela.nombre as parcela, Finca.nombre as finca, strftime('%d/%m/%Y', TestParcela.fecha) as fecha FROM TestParcela INNER JOIN Finca on Finca.id = TestParcela.idFinca INNER JOIN Parcela on Parcela.id = TestParcela.idParcela");
     return result;
   }
 

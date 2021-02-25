@@ -74,6 +74,24 @@ class _ListFincasPageState extends State<ListFincasPage> {
         ]).show();
   }
 
+  _openPopupModificar(context) {
+    Alert(
+        context: context,
+        title: "Modificar finca",
+        content: Column(
+          children: <Widget>[_form()],
+        ),
+        buttons: [
+          DialogButton(
+            onPressed: () => _onSubmit(),
+            child: Text(
+              "Guardar",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          )
+        ]).show();
+  }
+
   _form() => Container(
         color: Colors.white,
         padding: EdgeInsets.zero,
@@ -197,11 +215,6 @@ class _ListFincasPageState extends State<ListFincasPage> {
                         spacing: 12,
                         children: <Widget>[
                           IconButton(
-                              icon: Icon(Icons.delete_sweep),
-                              onPressed: () {
-                                _deleteFinca(_fincas[index].id, context);
-                              }),
-                          IconButton(
                             icon: Icon(Icons.add),
                             onPressed: () {
                               Navigator.push(
@@ -211,7 +224,12 @@ class _ListFincasPageState extends State<ListFincasPage> {
                                         finca: _fincas[index])),
                               );
                             },
-                          )
+                          ),
+                          IconButton(
+                              icon: Icon(Icons.delete_sweep),
+                              onPressed: () {
+                                _deleteFinca(_fincas[index].id, context);
+                              }),
                         ],
                       ),
                       onTap: () {
@@ -221,7 +239,7 @@ class _ListFincasPageState extends State<ListFincasPage> {
                           _ctlArea.text = _fincas[index].area.toString();
                           _ctlProd.text = _fincas[index].productor;
                           selected = _fincas[index].unidad;
-                          _openPopup(context);
+                          _openPopupModificar(context);
                         });
                       },
                     ),
@@ -331,6 +349,24 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
         ]).show();
   }
 
+  _openPopupModificar(context) {
+    Alert(
+        context: context,
+        title: "Modificar parcela",
+        content: Column(
+          children: <Widget>[_form()],
+        ),
+        buttons: [
+          DialogButton(
+            onPressed: () => _onSubmit(),
+            child: Text(
+              "Guardar",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          )
+        ]).show();
+  }
+
   _refreshVariedadList() async {
     List<Variedad> x = await _dbHelper.fetchVariedad();
     setState(() {
@@ -385,7 +421,6 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
     } else {
       result = 0;
     }
-
     return result;
   }
 
@@ -396,31 +431,6 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
           key: _formKey,
           child: Column(
             children: <Widget>[
-              //   DropdownButtonFormField<int>(
-              //     validator: (value) => value == null ? 'required' : null,
-              //     value: selectedFinca,
-              //     hint: Text('Finca'),
-              //     items: _fincas
-              //         .map((label) => DropdownMenuItem(
-              //               child: Text(label.nombre +
-              //                   ' (' +
-              //                   label.area.toString() +
-              //                   ' ' +
-              //                   label.unidad +
-              //                   ')'),
-              //               value: label.id,
-              //             ))
-              //         .toList(),
-              //     onChanged: (value) async {
-              //       List<Finca> area = await _dbHelper.getFinca(value);
-              //       print(selectedFinca);
-              //       setState(() {
-              //         selectedFinca = value;
-              //         _areaFinca = area;
-              //       });
-              //     },
-              //     onSaved: (value) => setState(() => _parcela.idFinca = value),
-              //   ),
               TextFormField(
                 controller: _ctlNombre,
                 decoration: InputDecoration(labelText: 'Nombre'),
@@ -486,7 +496,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
                           Text('Area ' + _parcelas[index]['area'].toString()),
                       isThreeLine: true,
                       trailing: IconButton(
-                          icon: Icon(Icons.delete_sweep),
+                          icon: Icon(Icons.delete),
                           onPressed: () async {
                             await _dbHelper
                                 .deleteParcela(_parcelas[index]['id']);
@@ -511,6 +521,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
                           _areaFinca = area;
                           validateParcela = asd;
                         });
+                        _openPopupModificar(context);
                       },
                     ),
                     Divider(
@@ -524,6 +535,7 @@ class _ListParcelasPageState extends State<ListParcelasPage> {
       );
 }
 
+/////variedades////////////////////////////////////////////////
 class ListVariedadesPage extends StatefulWidget {
   const ListVariedadesPage({Key key}) : super(key: key);
 

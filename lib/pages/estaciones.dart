@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_poda/models/estaciones.dart';
+import 'package:flutter_poda/pages/home.dart';
 import 'package:flutter_poda/providers/db_provider.dart';
 import 'package:checkbox_formfield/checkbox_formfield.dart';
 import 'package:flutter_poda/models/resultados.dart';
@@ -99,7 +100,11 @@ class _EstacionesPageState extends State<EstacionesPage> {
                     : Container(
                         color: Colors.white,
                         child: RaisedButton(
-                          onPressed: () => null,
+                          onPressed: () => Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => HomePage()),
+                              (Route<dynamic> route) => false),
                           child: Text('Inicio'),
                         ),
                       )

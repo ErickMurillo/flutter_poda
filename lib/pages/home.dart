@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             ListTile(
               leading: Icon(Icons.add),
-              title: Text('Fincas'),
+              title: Text('Fincas y Parcelas'),
               onTap: () {
                 Navigator.push(
                   context,
