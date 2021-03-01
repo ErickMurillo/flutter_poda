@@ -509,4 +509,13 @@ class DatabaseHelper {
         ? []
         : resultados.map((e) => Resultado.fromMap(e)).toList();
   }
+
+  //salidas registro
+
+  Future<List> getFincasRegistro() async {
+    Database db = await database;
+    var result = await db.rawQuery(
+        'SELECT id, nombre, area, unidad, (SELECT COUNT(*) from Parcela WHERE Finca.id=Parcela.idFinca) as parcelas from Finca');
+    return result;
+  }
 }
