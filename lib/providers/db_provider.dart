@@ -234,6 +234,16 @@ class DatabaseHelper {
     return result;
   }
 
+  Future<List> getTestRegistro(int id) async {
+    Database db = await database;
+    var result = await db.rawQuery(
+        "SELECT id,"
+        "strftime('%d/%m/%Y',fecha) as fecha FROM TestParcela "
+        "WHERE idParcela=?",
+        [id]);
+    return result;
+  }
+
   Future<List<TestParcela>> getTest(int id) async {
     Database db = await database;
     List<Map> test =
